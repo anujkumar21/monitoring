@@ -1,0 +1,15 @@
+version: "3.5"
+
+services:
+  producer:
+    container_name: kafka_producer
+    image: producer
+    build:
+      context: ./
+      dockerfile: services/kafka_producer/Dockerfile
+  consumer:
+    container_name: kafka_consumer
+    image: consumer
+    build:
+      context: ./
+      dockerfile: services/kafka_consumer/Dockerfile
