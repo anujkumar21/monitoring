@@ -15,18 +15,22 @@ class Consumer:
 
     def __init__(self, topic):
         config = Config()
-        service_uri = "{}:{}".format(config.get("host"), config.get("port"))
-        self.consumer = KafkaConsumer(
-            topic,
-            auto_offset_reset="earliest",
-            bootstrap_servers=service_uri,
-            client_id="demo-client-1",
-            group_id="demo-group",
-            security_protocol=SSL,
-            ssl_cafile=CA_PEM,
-            ssl_certfile=SERVICE_CERT,
-            ssl_keyfile=SERVICE_KEY,
-        )
+        try:
+            service_uri = "{}:{}".format(config.get("host"), config.get("port"))
+            self.consumer = KafkaConsumer(
+                topic,
+                auto_offset_reset="earliest",
+                bootstrap_servers=service_uri,
+                client_id="demo-client-1",
+                group_id="demo-group",
+                security_protocol=SSL,
+                ssl_cafile=CA_PEM,
+                ssl_certfile=SERVICE_CERT,
+                ssl_keyfile=SERVICE_KEY,
+            )
+        except Exception as ex:
+            log.error("Please check kafka server is running & details are correctly mentioned in config.ini")
+            raise ex
 
     def consume_and_store_messages(self):
         """

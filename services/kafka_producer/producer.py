@@ -6,9 +6,10 @@ from datetime import datetime
 import requests
 from apscheduler.schedulers.blocking import BlockingScheduler
 from kafka import KafkaProducer
+from kafka.errors import KafkaError
 
 from commons.config import Config
-from commons.constants import SSL, CA_PEM, SERVICE_KEY, SERVICE_CERT, GMT_FORMAT, POLLING_TIME, TIMEOUT
+from commons.constants import SSL, CA_PEM, SERVICE_KEY, SERVICE_CERT, GMT_FORMAT, POLLING_TIME, TIMEOUT, TOPIC
 from commons.log import log
 from model.stats import Stats
 
@@ -21,13 +22,18 @@ class Producer:
     def __init__(self):
         config = Config()
         service_uri = "{}:{}".format(config.get("host"), config.get("port"))
-        self.producer = KafkaProducer(
+        try:
+            self.producer = KafkaProducer(
             bootstrap_servers=service_uri,
             security_protocol=SSL,
             ssl_cafile=CA_PEM,
             ssl_certfile=SERVICE_CERT,
             ssl_keyfile=SERVICE_KEY,
-        )
+            )
+        except Exception as ex:
+            log.error("Please check kafka server is running & details are correctly mentioned in config.ini")
+            log.error(ex)
+            raise ex
 
     def send_message(self, topic, url, regex, data):
         """
@@ -38,8 +44,13 @@ class Producer:
         :param data: data need to be verified
         :return: future which can be used for meta-data
         """
+        global future
         stats = self.create_request_metrics(url, regex, data)
-        future = self.producer.send(topic, json.dumps(asdict(stats)).encode())
+        try:
+            future = self.producer.send(topic, json.dumps(asdict(stats)).encode())
+        except Exception as ex:
+            log.error("Please check Kafka is running & has topic as '{}'".format(TOPIC))
+            raise ex
         log.info("Message sent {}".format(future.get(timeout=TIMEOUT)))
         self.producer.flush()
         return future
