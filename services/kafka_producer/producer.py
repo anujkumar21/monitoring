@@ -6,7 +6,6 @@ from datetime import datetime
 import requests
 from apscheduler.schedulers.blocking import BlockingScheduler
 from kafka import KafkaProducer
-from kafka.errors import KafkaError
 
 from commons.config import Config
 from commons.constants import SSL, CA_PEM, SERVICE_KEY, SERVICE_CERT, GMT_FORMAT, POLLING_TIME, TIMEOUT, TOPIC
@@ -24,11 +23,11 @@ class Producer:
         service_uri = "{}:{}".format(config.get("host"), config.get("port"))
         try:
             self.producer = KafkaProducer(
-            bootstrap_servers=service_uri,
-            security_protocol=SSL,
-            ssl_cafile=CA_PEM,
-            ssl_certfile=SERVICE_CERT,
-            ssl_keyfile=SERVICE_KEY,
+                bootstrap_servers=service_uri,
+                security_protocol=SSL,
+                ssl_cafile=CA_PEM,
+                ssl_certfile=SERVICE_CERT,
+                ssl_keyfile=SERVICE_KEY,
             )
         except Exception as ex:
             log.error("Please check kafka server is running & details are correctly mentioned in config.ini")
